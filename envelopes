@@ -1,0 +1,130 @@
+#!/usr/bin/env perl
+use v5.18;
+
+# Copyright 2014 Andrew Sterling Hanenkamp.
+#
+# Available for distribution and modification under the same terms as Perl itself.
+
+use Cairo;
+use YAML qw( LoadFile );
+use Text::CSV_XS;
+
+use constant INCHES => 72;
+use constant MARGIN => 0.25;
+use constant LINE   => 1.2;
+
+MAIN(@ARGV);
+
+sub write_pdf {
+    my ($filename, $settings, @send) = @_;
+
+    my $return_png = $settings->{return_png};
+    my $png_margin = $settings->{return_png_margin};
+
+    my $margin     = $settings->{margin} // MARGIN;
+    my $font       = $settings->{font}   // 'serif';
+    my $slant      = $settings->{slant}  // 'normal';
+    my $weight     = $settings->{weight} // 'normal';
+
+    my $ret_size   = $settings->{return_font_size} // 10;
+    my $send_size  = $settings->{send_font_size}   // 14;
+
+    my $ret_line   = $ret_size  * LINE;
+    my $send_line  = $send_size * LINE;
+
+    my ($env_w, $env_h)   = @{ $settings->{envelope_size}   // [ 8.125, 4.125 ] };
+    my ($png_w, $png_h)   = @{ $settings->{return_png_size} // [ 0.75, 0.5 ] };
+    my ($send_l, $send_t) = @{ $settings->{send_origin}     // [ 2.5, 1.75 ] };
+
+    my $return    = $settings->{return};
+
+    my ($picpat, $r);
+    if (defined $return_png and -f $return_png) {
+        my $pic = Cairo::ImageSurface->create_from_png($return_png);
+        my $h = $pic->get_height;
+        $r = ($png_h * INCHES) / $h;
+
+        $picpat = Cairo::SurfacePattern->create($pic);
+    }
+
+    my $pdf = Cairo::PdfSurface->create($filename, $env_w * INCHES, $env_h * INCHES);
+    my $cr = Cairo::Context->create($pdf);
+
+    $cr->select_font_face($font, $slant, $weight);
+
+    for my $addr (@send) {
+        my $return_left  = $margin;
+
+        if (defined $picpat) {
+            $cr->save;
+            $cr->rectangle($margin * INCHES, $margin * INCHES + $ret_line/4, $png_w * INCHES, $png_h * INCHES);
+            $cr->translate($margin * INCHES, $margin * INCHES + $ret_line/4);
+            $cr->scale($r, $r);
+            $cr->set_source($picpat);
+            $cr->fill;
+            $cr->restore;
+
+            $return_left += $png_w + $png_margin;
+        }
+
+        if (defined $return) {
+            $cr->set_font_size($ret_size);
+            $cr->move_to($return_left * INCHES, $margin * INCHES + $ret_line * 1);
+            $cr->show_text($return->{name}) if $return->{name};
+            $cr->move_to($return_left * INCHES, $margin * INCHES + $ret_line * 2);
+            $cr->show_text($return->{address}) if $return->{address};
+            $cr->move_to($return_left * INCHES, $margin * INCHES + $ret_line * 3);
+            $cr->show_text("$return->{city}, $return->{state}  $return->{zip}")
+                if $return->{city} or $return->{state} or $return->{zip};
+        }
+
+        $cr->set_font_size($send_size);
+        $cr->move_to($send_l * INCHES, $send_t * INCHES + $send_line * 1);
+        $cr->show_text($addr->{name}) if $addr->{name};
+        $cr->move_to($send_l * INCHES, $send_t * INCHES + $send_line * 2);
+        $cr->show_text($addr->{address}) if $addr->{address};
+        $cr->move_to($send_l * INCHES, $send_t * INCHES + $send_line * 3);
+        $cr->show_text("$addr->{city}, $addr->{state}  $addr->{zip}")
+            if $addr->{city} or $addr->{state} or $addr->{zip};
+
+        $pdf->show_page;
+    }
+
+    $pdf->flush;
+    $pdf->finish;
+}
+
+sub usage {
+    die "usage: $0 return.yml send.csv output.pdf\n".(@_?"@_\n":'');
+}
+
+sub MAIN {
+    my ($settings_file, $send_file, $output_file) = @_;
+
+    usage("missing settings.yml file") unless defined $settings_file and -f $settings_file;;
+    usage("missing send.csv file")     unless defined $send_file     and -f $send_file;
+    usage("missing output.pdf file")   unless defined $output_file;
+
+    usage("The PDF file $output_file already exists. Will not overwrite. Stopping.")
+        if -f $output_file;
+
+    my $settings = LoadFile($settings_file);
+
+    my @send;
+
+    my $csv = Text::CSV_XS->new;
+    open my $send_fh, '<', $send_file or die "cannot open $send_file: $!\n";
+    while (my $row = $csv->getline($send_fh)) {
+        push @send, {
+            name    => $row->[0],
+            address => $row->[1],
+            city    => $row->[2],
+            state   => $row->[3],
+            zip     => $row->[4],
+        };
+    }
+
+    close $send_fh;
+
+    write_pdf($output_file, $settings, @send);
+}

@@ -1,0 +1,16 @@
+---
+font: Optima
+envelope_size: [ 8.125, 4.125 ]
+margin: .25
+return_png: return.png
+return_png_size: [ 0.75, 0.5 ]
+return_png_margin: 0.05
+return_font_size: 10
+send_font_size: 14
+send_origin: [ 2.5, 1.75 ]
+return:
+    name: Hello World
+    address: 1111 Some St.
+    city: Cityville
+    state: ST
+    zip: 11111
