@@ -11,7 +11,7 @@ a
 [bug](https://code.google.com/p/google-apps-script-issues/issues/detail?id=1612)
 that makes working with images more difficult than I want to bother with working
 around, if a work around is even possible. Docs Scripting also seems to change
-wildly from one year to the next, so I have to fix my scripts every year.
+from one year to the next, so I have to fix my scripts every year.
 
 So, looking for another solution, I found [this
 script](https://github.com/martine/envelope) (HT: @martine) for printing
