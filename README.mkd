@@ -25,7 +25,7 @@ This is only available from github. These are approximately the way I install
 and use it.
 
     # Common to all
-    git clone URL
+    git clone https://github.com/zostay/envelopes.git
     cd envelopes
 
     # On MacOS X, if you use MacPorts, you can install Cairo like this:
@@ -37,7 +37,7 @@ and use it.
     # On Windows, you are on your own. Look here: http://cairographics.org/download/
 
     # Common to all again (assuming you have cpanm installed)
-    cpanm Cairo
+    cpanm Cairo Text::CSV_XS YAML
 
 That is all. I tried the Homebrew version of Cairo first, but it seemed to
 install incorrectly. The MacPorts package worked fine.
