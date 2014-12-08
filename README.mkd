@@ -1,0 +1,76 @@
+# Envelope Printer
+
+This is my solution to my annual Christmas card printing problem. I have used a
+number of solutions over the years, but every year I have to retool it. I do not
+use a Word Processor very often and when I do I general find their mail merge
+tools to be extremely horrible.
+
+Anyway, my previous solution used a Google Apps script to generate my envelope.
+It works, but I do not like the formatting available on Google Docs and there is
+a
+[bug](https://code.google.com/p/google-apps-script-issues/issues/detail?id=1612)
+that makes working with images more difficult than I want to bother with working
+around, if a work around is even possible.
+
+So, looking for another solution, I found [this
+script](https://github.com/martine/envelope) (HT: @martine) for printing
+envelopes by generating PDFs directly using the Cairo drawing library. Looked
+like a good idea, but I do not especially like Python, so I wrote my own version
+in Perl and made it configurable from an external set of files and am releasing
+it here in case someone else finds it useful.
+
+## Installation
+
+This is only available from github. These are approximately the way I install
+and use it.
+
+    # Common to all
+    git clone URL
+    cd envelopes
+
+    # On MacOS X, if you use MacPorts, you can install Cairo like this:
+    port install cairo
+
+    # On Ubuntu, you can do:
+    apt-get install cairo
+
+    # On Windows, you are on your own. Look here: http://cairographics.org/download/
+
+    # Common to all again (assuming you have cpanm installed)
+    cpanm Cairo
+
+That is all. I tried the Homebrew version of Cairo first, but it seemed to
+install incorrectly. The MacPorts package worked fine.
+
+## Usage
+
+Just to get a sample of what this looks like, run:
+
+    ./envelopes settings.yml sendto.csv output.pdf
+
+A file named `output.pdf` will be generated (if there are no errors reported)
+and should contain a single sample envelope.
+
+To generate your own envelopes you need to modify the `settings.yml` file with
+your own envelope size and return address. You can tweak the settings in it to
+modify the font used, the size of the return address and to address, and the
+position of these on the envelope.
+
+You may want to locate your own PNG file to use in the return address or just
+delete the provided one (or remove the `return_png` setting in `settings.yml`)
+if you do not want a picture on your envelope.
+
+Finally, you will need a CSV file containing all the addresses. The file used is
+formatted in 5 columns: name, address, city, state, zip. If your addresses are
+formatted differently, you will just need to modify the program itself or
+reformat your addresses.
+
+Once you have your CSV file and settings setup, run command above with your
+files and you are done.
+
+## Copyright & License
+
+Copyright 2014 Andrew Sterling Hanenkamp.  This software project is available
+under the Artistic 2.0 license (or GPL). You may distribute or modify this code
+under same terms as Perl itself. The image file provided with this program as a
+sample is in the public domain and was retrieved from [pixaby.com](pixaby.com).
