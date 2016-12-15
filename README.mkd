@@ -29,8 +29,8 @@ and use it.
     git clone https://github.com/zostay/envelopes.git
     cd envelopes
 
-    # On MacOS X, if you use MacPorts, you can install Cairo like this:
-    port install cairo
+    # On MacOS X, if you use Homebrew, you can install Cairo like this:
+    brew install cairo
 
     # On Ubuntu, you can do:
     apt-get install cairo
